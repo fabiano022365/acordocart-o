@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Acordo - Cartão de Crédito</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f4f8; color: #1e293b; margin: 0; padding: 20px; }
+        .container { max-width: 650px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h1 { color: #0f172a; font-size: 22px; margin-bottom: 5px; text-align: center; }
+        p.subtitle { color: #64748b; font-size: 14px; text-align: center; margin-bottom: 25px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 5px; color: #334155; }
+        input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; }
+        input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .row { display: flex; gap: 15px; }
+        .row .form-group { flex: 1; }
+        button.btn-gerar { width: 100%; background-color: #2563eb; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        button.btn-gerar:hover { background-color: #1d4ed8; }
+        .resultado-box { display: none; margin-top: 30px; padding-top: 20px; border-top: 2px dashed #cbd5e1; }
+        h2 { font-size: 18px; color: #0f172a; margin-bottom: 10px; }
+        textarea { width: 100%; padding: 12px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; line-height: 1.5; background-color: #f8fafc; resize: vertical; }
+        button.btn-copiar { background-color: #16a34a; color: white; border: none; padding: 10px 16px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 8px; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 6px; }
+        button.btn-copiar:hover { background-color: #15803d; }
+        .alerta { font-size: 12px; color: #64748b; text-align: center; margin-top: 15px; }
+        @media (max-width: 500px) { .row { flex-direction: column; gap: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Gerador de Proposta para Cartão</h1>
+    <p class="subtitle">Preencha os dados abaixo para gerar o texto pronto do Capítulo 4 para o Consumidor.gov.br ou e-mail da ouvidoria.</p>
+
+    <div class="row">
+        <div class="form-group">
+            <label for="banco">Nome do Banco / Cartão</label>
+            <input type="text" id="banco" placeholder="Ex: Nubank, Itaú, Bradesco">
+        </div>
+        <div class="form-group">
+            <label for="digitos">4 últimos dígitos (ou contrato)</label>
+            <input type="text" id="digitos" placeholder="Ex: 4829">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group">
+            <label for="dataAtraso">Mês/Ano do início do atraso</label>
+            <input type="text" id="dataAtraso" placeholder="Ex: Março/2025">
+        </div>
+        <div class="form-group">
+            <label for="valorOriginal">Valor Original (sem juros)</label>
+            <input type="text" id="valorOriginal" placeholder="Ex: 1.200,00">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group">
+            <label for="valorAtual">Valor Atual Cobrado</label>
+            <input type="text" id="valorAtual" placeholder="Ex: 6.850,00">
+        </div>
+        <div class="form-group">
+            <label for="valorVista">Sua Proposta à Vista (R$)</label>
+            <input type="text" id="valorVista" placeholder="Ex: 650,00">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="valorParcela">Valor Máximo de Parcela (caso não aceitem à vista)</label>
+        <input type="text" id="valorParcela" placeholder="Ex: 150,00">
+    </div>
+
+    <button class="btn-gerar" onclick="gerarTextos()">Gerar Textos Prontos</button>
+
+    <div class="resultado-box" id="resultadoBox">
+        <h2>1. Texto Principal ("Descreva seu problema" ou Corpo do E-mail)</h2>
+        <textarea id="textoPrincipal" rows="13" readonly></textarea>
+        <button class="btn-copiar" onclick="copiarTexto('textoPrincipal', this)">📋 Copiar Texto Principal</button>
+
+        <h2>2. Campo "Qual o seu pedido à empresa?" (Assunto / Resumo)</h2>
+        <textarea id="textoPedido" rows="4" readonly></textarea>
+        <button class="btn-copiar" onclick="copiarTexto('textoPedido', this)">📋 Copiar Pedido</button>
+    </div>
+
+    <p class="alerta">Seus dados não são salvos nem enviados para nenhum servidor. Tudo é processado apenas no seu navegador.</p>
+</div>
+
+<script>
+    function gerarTextos() {
+        const banco = document.getElementById('banco').value.trim() || '[NOME DO CARTÃO / BANCO]';
+        const digitos = document.getElementById('digitos').value.trim() || '[ÚLTIMOS 4 DÍGITOS]';
+        const dataAtraso = document.getElementById('dataAtraso').value.trim() || '[MÊS/ANO DO ATRASO]';
+        const valorOriginal = document.getElementById('valorOriginal').value.trim() || '[VALOR ORIGINAL]';
+        const valorAtual = document.getElementById('valorAtual').value.trim() || '[VALOR ATUAL COBRADO]';
+        const valorVista = document.getElementById('valorVista').value.trim() || '[SEU VALOR PROPOSTO À VISTA]';
+        const valorParcela = document.getElementById('valorParcela').value.trim() || '[VALOR MÁXIMO DE PARCELA]';
+
+        const principal = `Prezados,
+
+Venho por meio deste canal oficial da ouvidoria buscar uma solução definitiva e amigável para a quitação da dívida referente ao meu cartão de crédito ${banco}, contrato/final ${digitos}, em atraso desde ${dataAtraso}.
+
+O valor original das faturas era de aproximadamente R$ ${valorOriginal}. Contudo, devido à aplicação de juros rotativos e encargos acumulados, o saldo cobrado atualmente atingiu R$ ${valorAtual}, quantia totalmente incompatível com a minha realidade financeira.
+
+Tenho plena intenção de quitar este débito e regularizar meu CPF, porém não consigo aceitar as propostas automatizadas das centrais de cobrança. Com ajuda familiar, consegui reunir o valor máximo de R$ ${valorVista} para liquidação imediata e integral à vista (via Pix ou boleto único).
+
+Caso não seja possível fechar neste valor à vista, peço uma proposta de parcelamento com redução substancial dos juros, com parcelas fixas de no máximo R$ ${valorParcela}.
+
+Aguardo a análise da ouvidoria e o envio formal da proposta e do boleto nesta plataforma.`;
+
+        const pedido = `Solicito o abatimento dos juros acumulados sobre o cartão de crédito (${banco}) e a emissão de boleto/Pix para quitação total da dívida no valor à vista de R$ ${valorVista}, com a exclusão imediata do meu nome dos cadastros de inadimplentes (Serasa/SPC) após o pagamento.`;
+
+        document.getElementById('textoPrincipal').value = principal;
+        document.getElementById('textoPedido').value = pedido;
+        document.getElementById('resultadoBox').style.display = 'block';
+        document.getElementById('resultadoBox').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copiarTexto(elementId, btn) {
+        const textarea = document.getElementById(elementId);
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(textarea.value);
+        
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '✅ Copiado com sucesso!';
+        btn.style.backgroundColor = '#0f172a';
+        setTimeout(() => {
+            btn.innerHTML = textoOriginal;
+            btn.style.backgroundColor = '#16a34a';
+        }, 2500);
+    }
+</script>
+
+</body>
+</html>
